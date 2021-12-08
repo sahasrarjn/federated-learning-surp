@@ -11,10 +11,12 @@ class Parameters:
         algorithm='choco',
         data_split=0.8,
         seed=None,
+        loss='mse',
     ):
 
         assert topology in ['ring', 'torus', 'fully-connected', 'disconnected']
         assert algorithm in ['plain', 'choco', 'DCD', 'ECD']
+        assert loss in ['mse', 'logistic', 'hinge']
         assert data_split <= 1.0 and data_split >= 0.0
         assert num_nodes > 0
 

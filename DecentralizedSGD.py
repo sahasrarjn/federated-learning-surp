@@ -43,4 +43,36 @@ class DecentralizedSGD:
         else:
             raise Exception('DecentralizedSGD: Unknown topology')
         return W
-                
+
+    def loss(self, A, y):
+        x = self.x_est if self.x_est else self.x
+        x = x.copy().mean(axis=1)
+
+        if self.params.loss == 'mse':
+            loss = np.mean((A@x - y)**2)
+        elif self.params.loss == 'hinge':
+            pass
+        elif self.params.loss == 'logistic':
+            pass 
+        else:
+            raise Exception('DecentralizedSGD: Unknown loss function')
+        
+    def sigmoid(self, x:float) -> float:
+        # modify later for overflow
+        return 1./(1+np.exp(-x))
+
+    def predict(self, A, prob=False):
+        ''' Predict function for binary classification '''
+        x = self.x_est if self.x_est else self.x
+        x = x.copy().mean(axis=1)
+        logits = A @ x
+        if prob:
+            return self.sigmoid(logits)
+        else:
+            return (logits >= 0.).astype(np.int)
+
+    def accuracy(self, A, y):
+        pred = 2 * self.predict(A, prob=False) - 1
+        return np.mean(pred == y)
+
+
