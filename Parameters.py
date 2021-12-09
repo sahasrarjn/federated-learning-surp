@@ -12,6 +12,7 @@ class Parameters:
         data_split=0.8,
         seed=None,
         loss='mse',
+        num_epochs=5,
     ):
 
         assert topology in ['ring', 'torus', 'fully-connected', 'disconnected']
@@ -27,6 +28,9 @@ class Parameters:
         self.algorithm = algorithm
         self.data_split = data_split
         self.seed = seed
+        self.loss = loss
+        self.num_epochs = num_epochs
+
 
     def __str__(self) -> str:
         return  f'Parameters:\n' \
@@ -36,4 +40,6 @@ class Parameters:
                 f'\tTopology: {self.topology}\n' \
                 f'\tAlgorithm: {self.algorithm}\n' \
                 f'\tData split: {self.data_split}\n' \
-                f'\tSeed: {self.seed}\n'
+                f'\tSeed: {self.seed}\n' \
+                f'\tLoss: {self.loss}\n' \
+                f'\tNumber of epochs: {self.num_epochs}\n'
