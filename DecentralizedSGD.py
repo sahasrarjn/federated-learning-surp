@@ -10,7 +10,6 @@ class DecentralizedSGD:
         self.x_est = None
         self.x = None
         self.W = self.create_mixing_matrix(params.topology, params.num_nodes)
-
     
     def create_mixing_matrix(self, topology:str, num_nodes:int):
         W = None
@@ -75,4 +74,6 @@ class DecentralizedSGD:
         pred = 2 * self.predict(A, prob=False) - 1
         return np.mean(pred == y)
 
-
+    def fit(self, A, y):
+        '''Decentralised training using Choco-SGD'''
+        pass
