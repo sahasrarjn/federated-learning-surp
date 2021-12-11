@@ -8,7 +8,6 @@ from parameters import Parameters
 class DecentralizedSGD:
     def __init__(self, params:Parameters):
         self.params = params
-        self.w_est = None
         self.w = None
         self.MM = self.create_mixing_matrix(params.topology, params.num_nodes)
     
@@ -42,10 +41,10 @@ class DecentralizedSGD:
             MM = np.eye(num_nodes)
         else:
             raise Exception('DecentralizedSGD: Unknown topology')
+        assert MM.shape == (num_nodes, num_nodes)
         return MM
 
     def loss(self, X, y):
-        w = self.w_est if self.w_est else self.w
         w = w.copy().mean(axis=1)
 
         if self.params.loss == 'mse':
@@ -58,15 +57,15 @@ class DecentralizedSGD:
             raise Exception('DecentralizedSGD: Unknown loss function')
         return loss
 
-    
-        
     def sigmoid(self, w:float) -> float:
         # modify later for overflow
         return 1./(1+np.exp(-w))
 
+    def quantize(self, x):
+        pass
+
     def predict(self, X, prob=False):
         ''' Predict function for binary classification '''
-        w = self.w_est if self.w_est else self.w
         w = w.copy().mean(axis=1)
         logits = X @ w
         if prob:
@@ -87,8 +86,8 @@ class DecentralizedSGD:
         if self.w in None:
             self.w = np.random.normal(0, 0.1, num_features)   # initialize weights
             self.w = np.tile(self.w, (num_samples, 1)).T
-            self.w_est = np.copy(self.w)
             self.w_hat = np.copy(self.w)
+            assert self.w.shape == (num_samples, num_features)
 
         # split data onto machines
         if self.params.distribute_data:
@@ -113,14 +112,13 @@ class DecentralizedSGD:
         for epoch in range(self.params.num_epochs):
             for batch in range(num_samples_per_machine):
 
-                # Gradient step
                 w_mid = np.zeros(self.w.shape)
                 for node in range(self.params.num_nodes):
                     idx = np.random.choice(indices[node])
                     X = X_train[idx]
                     w = self.w[:, node]
 
-                    # gradient step
+                    # Gradient
                     if self.params.loss == 'mse':
                         grad = 2 * (X@w - y[idx]) * X
                     elif self.params.loss == 'hinge':
@@ -130,8 +128,29 @@ class DecentralizedSGD:
                     else:
                         raise Exception('DecentralizedSGD: Unknown loss function')
 
-                    w_mid[:, node] =  - self.params.lr * grad
+                    w_mid[:, node] = self.params.lr * grad
 
-                w_mid += self.w
-                # Communication step
+                # w_mid = self.w - w_mid # w^{t+1/2} = w^{t} - \eta grad^{t}
+
+                # Decentralized Communication
+                if self.params.algorithm == 'choco-sgd':
+                    w_mid = self.w - w_mid                          # w_mid = w^{t+1/2}
+                    q = self.quantize(w_mid - self.w)               # q = q(w^{t+1/2} - w^{t})
+                    self.w_hat += q                                 # w^{t+1} = w^{t} + q
+
+                    # Update step: w^{t+1} = w^{t+1/2} + \gamma q(w^{t+1/2} - w^{t})
+                    self.w = w_mid + self.params.choco_gamma * \
+                        (self.w_hat).dot(self.MM - np.eye(self.params.num_nodes)) 
+                elif self.params.algorithm == 'plain':
+                    self.w = (self.w - w_mid).dot(self.MM)
+                else:
+                    raise Exception('DecentralizedSGD: Unknown algorithm')
+                
+            losses[epoch+1] = self.loss(X_train, y_train)
+            print('Epoch: %d, Loss: %.4f, Accuracy: %.4f' % (epoch+1, losses[epoch+1], self.accuracy(X_train, y_train)))
+
+        train_end_time = time()
+        print('Training time: %.2f seconds' % (train_end_time - train_start_time))
+
+                
         

@@ -11,6 +11,7 @@ model = DecentralizedSGD(Parameters(
     algorithm='choco',
     data_split=0.8,
     seed=None,
+    choco_gamma=0.1,
 ))
 
 # DEBUG: Add regularizer

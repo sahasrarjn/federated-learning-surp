@@ -15,14 +15,16 @@ class Parameters:
         num_epochs=5,
         distribute_data=True,
         distribute_data_method='random',
+        choco_gamma=None,
     ):
 
         assert topology in ['ring', 'torus', 'fully-connected', 'disconnected']
-        assert algorithm in ['plain', 'choco', 'DCD', 'ECD']
+        assert algorithm in ['plain', 'choco']
         assert loss in ['mse', 'logistic', 'hinge']
         assert distribute_data_method in ['random', 'sequential', 'label-sorted']
         assert data_split <= 1.0 and data_split >= 0.0
         assert num_nodes > 0
+        assert (choco_gamma is None) or (algorithm != 'choco')
 
         self.lr = lr
         self.regularizer = regularizer
