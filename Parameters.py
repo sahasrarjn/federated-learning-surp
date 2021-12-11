@@ -13,11 +13,14 @@ class Parameters:
         seed=None,
         loss='mse',
         num_epochs=5,
+        distribute_data=True,
+        distribute_data_method='random',
     ):
 
         assert topology in ['ring', 'torus', 'fully-connected', 'disconnected']
         assert algorithm in ['plain', 'choco', 'DCD', 'ECD']
         assert loss in ['mse', 'logistic', 'hinge']
+        assert distribute_data_method in ['random', 'sequential', 'label-sorted']
         assert data_split <= 1.0 and data_split >= 0.0
         assert num_nodes > 0
 
@@ -30,6 +33,8 @@ class Parameters:
         self.seed = seed
         self.loss = loss
         self.num_epochs = num_epochs
+        self.distribute_data = distribute_data
+        self.distribute_data_method = distribute_data_method
 
 
     def __str__(self) -> str:
@@ -42,4 +47,6 @@ class Parameters:
                 f'\tData split: {self.data_split}\n' \
                 f'\tSeed: {self.seed}\n' \
                 f'\tLoss: {self.loss}\n' \
-                f'\tNumber of epochs: {self.num_epochs}\n'
+                f'\tNumber of epochs: {self.num_epochs}\n' \
+                f'\tDistribute data: {self.distribute_data}\n' \
+                f'\tDistribute data method: {self.distribute_data_method}\n'

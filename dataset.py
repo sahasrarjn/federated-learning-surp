@@ -9,7 +9,7 @@ class Dataloader:
         '''Read csv file and return pandas dataframe'''
         df = pd.read_csv(self.data_path, header=None)
         df.loc(axis=1)[0] = df.loc(axis=1)[0].astype(int)
-        df.loc(axis=1)[0] = df.loc(axis=1)[0].replace(-1, 0)
+        df.loc(axis=1)[0] = df.loc(axis=1)[0].replace(-1, 0) # DEBUG : replace -1 with 0
         return df
 
     def split(self, df, shuffle=True):

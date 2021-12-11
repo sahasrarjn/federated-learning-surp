@@ -1,3 +1,4 @@
+from time import time
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -41,6 +42,7 @@ class DecentralizedSGD:
             MM = np.eye(num_nodes)
         else:
             raise Exception('DecentralizedSGD: Unknown topology')
+        print(MM)
         return MM
 
     def loss(self, X, y):
@@ -55,6 +57,9 @@ class DecentralizedSGD:
             pass 
         else:
             raise Exception('DecentralizedSGD: Unknown loss function')
+        return loss
+
+    
         
     def sigmoid(self, w:float) -> float:
         # modify later for overflow
@@ -80,4 +85,54 @@ class DecentralizedSGD:
         losses = np.zeros(self.params.num_epochs+1)
         num_samples, num_features = X_train.shape
 
+        if self.w in None:
+            self.w = np.random.normal(0, 0.1, num_features)   # initialize weights
+            self.w = np.tile(self.w, (num_samples, 1)).T
+            self.w_est = np.copy(self.w)
+            self.w_hat = np.copy(self.w)
+
+        # split data onto machines
+        if self.params.distribute_data:
+            num_samples_per_machine = int(num_samples / self.params.num_nodes)
+            if self.params.distribute_data_method == 'random':
+                idxs = np.arrange(num_samples)
+                np.random.shuffle(idxs)
+            elif self.params.distribute_data_method == 'sequential':
+                idxs = np.arange(num_samples)
+            elif self.params.distribute_data_method == 'label-sorted':
+                idxs = np.argsort(y)
+            
+            indices = []
+            for node in range(self.params.num_nodes-1):
+                indices.append(idxs[node*num_samples_per_machine:(node+1)*num_samples_per_machine])
+            indices.append(idxs[(self.params.num_nodes-1)*num_samples_per_machine:])
+        else:
+            num_samples_per_machine = num_samples
+            indices = np.tile(np.arange(num_samples), (self.params.num_nodes, 1))
+
+        train_start_time = time()
+        for epoch in range(self.params.num_epochs):
+            for batch in range(num_samples_per_machine):
+
+                # Gradient step
+                w_mid = np.zeros(self.w.shape)
+                for node in range(self.params.num_nodes):
+                    idx = np.random.choice(indices[node])
+                    X = X_train[idx]
+                    w = self.w[:, node]
+
+                    # gradient step
+                    if self.params.loss == 'mse':
+                        grad = 2 * (X@w - y[idx]) * X
+                    elif self.params.loss == 'hinge':
+                        pass
+                    elif self.params.loss == 'logistic':
+                        pass
+                    else:
+                        raise Exception('DecentralizedSGD: Unknown loss function')
+
+                    w_mid[:, node] =  - self.params.lr * grad
+
+                w_mid += self.w
+                # Communication step
         
