@@ -1,3 +1,4 @@
+from sklearn import datasets
 from parameters import Parameters
 from dataset import Dataloader
 from decentralizedSGD import DecentralizedSGD
@@ -14,7 +15,7 @@ model = DecentralizedSGD(Parameters(
 
 # DEBUG: Add regularizer
 
-dataset = Dataloader('data/banana_data.csv')
+dataset = Dataloader(data_name='diabetes')
 X_train, y_train, X_test, y_test = dataset.get_data()
 
 # model.fit(X_test, y_test)

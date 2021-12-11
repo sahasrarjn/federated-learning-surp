@@ -42,7 +42,6 @@ class DecentralizedSGD:
             MM = np.eye(num_nodes)
         else:
             raise Exception('DecentralizedSGD: Unknown topology')
-        print(MM)
         return MM
 
     def loss(self, X, y):
