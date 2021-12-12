@@ -45,7 +45,7 @@ class DecentralizedSGD:
         return MM
 
     def loss(self, X, y):
-        w = w.copy().mean(axis=1)
+        w = self.w.copy().mean(axis=1)
 
         if self.params.loss == 'mse':
             loss = np.mean((X@w - y)**2)
@@ -62,11 +62,18 @@ class DecentralizedSGD:
         return 1./(1+np.exp(-w))
 
     def quantize(self, x):
-        pass
+        if self.params.quantize_algo == 'spasification':
+            pass
+        elif self.params.quantize_algo == 'random-gossip':
+            pass
+        elif self.params.quantize_algo == 'full':
+            return x
+        else:
+            raise Exception('DecentralizedSGD: Unknown quantization algorithm')
 
     def predict(self, X, prob=False):
         ''' Predict function for binary classification '''
-        w = w.copy().mean(axis=1)
+        w = self.w.copy().mean(axis=1)
         logits = X @ w
         if prob:
             return self.sigmoid(logits)
@@ -83,17 +90,17 @@ class DecentralizedSGD:
         losses = np.zeros(self.params.num_epochs+1)
         num_samples, num_features = X_train.shape
 
-        if self.w in None:
+        if self.w is None:
             self.w = np.random.normal(0, 0.1, num_features)   # initialize weights
-            self.w = np.tile(self.w, (num_samples, 1)).T
+            self.w = np.tile(self.w, (self.params.num_nodes, 1)).T
             self.w_hat = np.copy(self.w)
-            assert self.w.shape == (num_samples, num_features)
+            assert self.w.shape == (num_features, self.params.num_nodes)
 
         # split data onto machines
         if self.params.distribute_data:
             num_samples_per_machine = int(num_samples / self.params.num_nodes)
             if self.params.distribute_data_method == 'random':
-                idxs = np.arrange(num_samples)
+                idxs = np.array(range(num_samples))
                 np.random.shuffle(idxs)
             elif self.params.distribute_data_method == 'sequential':
                 idxs = np.arange(num_samples)
@@ -133,10 +140,10 @@ class DecentralizedSGD:
                 # w_mid = self.w - w_mid # w^{t+1/2} = w^{t} - \eta grad^{t}
 
                 # Decentralized Communication
-                if self.params.algorithm == 'choco-sgd':
-                    w_mid = self.w - w_mid                          # w_mid = w^{t+1/2}
-                    q = self.quantize(w_mid - self.w)               # q = q(w^{t+1/2} - w^{t})
-                    self.w_hat += q                                 # w^{t+1} = w^{t} + q
+                if self.params.algorithm == 'choco':
+                    w_mid = self.w - w_mid                  # w_mid = w^{t+1/2}
+                    q = self.quantize(w_mid - self.w)       # q = q(w^{t+1/2} - w^{t})
+                    self.w_hat += q                         # w^{t+1} = w^{t} + q
 
                     # Update step: w^{t+1} = w^{t+1/2} + \gamma q(w^{t+1/2} - w^{t})
                     self.w = w_mid + self.params.choco_gamma * \
