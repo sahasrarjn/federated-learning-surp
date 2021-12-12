@@ -81,7 +81,7 @@ class DecentralizedSGD:
             return (logits >= 0.).astype(np.int)
 
     def accuracy(self, X, y):
-        pred = 2 * self.predict(X, prob=False) - 1
+        pred = 2 * self.predict(X) - 1
         return np.mean(pred == y)
 
     def fit(self, X_train, y_train):
@@ -115,13 +115,14 @@ class DecentralizedSGD:
             num_samples_per_machine = num_samples
             indices = np.tile(np.arange(num_samples), (self.params.num_nodes, 1))
 
+        print('Initial Loss: {:.4f}'.format(self.loss(X_train, y_train)))        
+
         train_start_time = time()
         for epoch in range(self.params.num_epochs):
-            for batch in range(num_samples_per_machine):
-
+            for iter in range(num_samples_per_machine):
                 w_mid = np.zeros(self.w.shape)
                 for node in range(self.params.num_nodes):
-                    idx = np.random.choice(indices[node])
+                    idx = indices[node][iter]
                     X = X_train[idx]
                     w = self.w[:, node]
 
@@ -134,27 +135,29 @@ class DecentralizedSGD:
                         pass
                     else:
                         raise Exception('DecentralizedSGD: Unknown loss function')
-
-                    w_mid[:, node] = self.params.lr * grad
+                    w_mid[:, node] = - self.params.lr * grad
 
                 # w_mid = self.w - w_mid # w^{t+1/2} = w^{t} - \eta grad^{t}
+                # print("w_mid\n", w_mid)
 
                 # Decentralized Communication
                 if self.params.algorithm == 'choco':
-                    w_mid = self.w - w_mid                  # w_mid = w^{t+1/2}
-                    q = self.quantize(w_mid - self.w)       # q = q(w^{t+1/2} - w^{t})
+                    w_mid = self.w + w_mid                  # w_mid = w^{t+1/2}
+                    q = self.quantize(w_mid - self.w_hat)   # q = q(w^{t+1/2} - w^{t})
                     self.w_hat += q                         # w^{t+1} = w^{t} + q
 
                     # Update step: w^{t+1} = w^{t+1/2} + \gamma q(w^{t+1/2} - w^{t})
                     self.w = w_mid + self.params.choco_gamma * \
                         (self.w_hat).dot(self.MM - np.eye(self.params.num_nodes)) 
                 elif self.params.algorithm == 'plain':
-                    self.w = (self.w - w_mid).dot(self.MM)
+                    self.w = (self.w + w_mid).dot(self.MM)
                 else:
                     raise Exception('DecentralizedSGD: Unknown algorithm')
                 
+                # print('Loss: {:.4f}'.format(self.loss(X_train, y_train)))        
+                    
             losses[epoch+1] = self.loss(X_train, y_train)
-            print('Epoch: %d, Loss: %.4f, Accuracy: %.4f' % (epoch+1, losses[epoch+1], self.accuracy(X_train, y_train)))
+            print('Epoch: %d, Loss: %.4f' % (epoch+1, losses[epoch+1]))
 
         train_end_time = time()
         print('Training time: %.2f seconds' % (train_end_time - train_start_time))

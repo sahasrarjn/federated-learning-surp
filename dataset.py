@@ -13,11 +13,16 @@ class Dataloader:
         '''Read csv file and return pandas dataframe'''
         if self.data_name == 'banana':
             df = pd.read_csv(self.data_path, header=None)
+            # normalize data
             df.loc(axis=1)[0] = df.loc(axis=1)[0].astype(int)
             df.loc(axis=1)[0] = df.loc(axis=1)[0].replace(-1, 0) # DEBUG : replaced -1 with 0
         elif self.data_name == 'diabetes':
             df = datasets.load_diabetes(as_frame=True)
-            df = pd.concat([df.target, df.data], axis=1)
+            X = df.data
+            y = df.target
+            X = (X - X.mean(axis=0)) / X.std(axis=0)
+            y = (y - y.mean()) / y.std()
+            df = pd.concat([y, X], axis=1)
             df.columns = list(range(df.shape[1]))
         else:
             raise ValueError('No such data')

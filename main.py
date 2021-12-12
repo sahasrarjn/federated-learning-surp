@@ -4,17 +4,17 @@ from dataset import Dataloader
 from decentralizedSGD import DecentralizedSGD
 
 model = DecentralizedSGD(Parameters(
-    lr=0.1,
+    lr=0.001,
     regularizer=None,
-    num_nodes=9,
+    num_nodes=1,
     topology='ring',
     algorithm='choco',
     quantize_algo='full',
     data_split=0.8,
     seed=None,
     loss='mse',
-    num_epochs=5,
-    distribute_data=True,
+    num_epochs=20,
+    distribute_data=False,
     distribute_data_method='random',
     choco_gamma=0.1,
 ))

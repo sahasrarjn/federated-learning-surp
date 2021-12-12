@@ -1,0 +1,23 @@
+Loaded diabetes dataset!!
+Initial Loss: 1.1156
+Epoch: 1, Loss: 0.6055
+Epoch: 2, Loss: 0.4921
+Epoch: 3, Loss: 0.4597
+Epoch: 4, Loss: 0.4454
+Epoch: 5, Loss: 0.4365
+Epoch: 6, Loss: 0.4300
+Epoch: 7, Loss: 0.4251
+Epoch: 8, Loss: 0.4214
+Epoch: 9, Loss: 0.4184
+Epoch: 10, Loss: 0.4161
+Epoch: 11, Loss: 0.4143
+Epoch: 12, Loss: 0.4128
+Epoch: 13, Loss: 0.4116
+Epoch: 14, Loss: 0.4107
+Epoch: 15, Loss: 0.4098
+Epoch: 16, Loss: 0.4091
+Epoch: 17, Loss: 0.4086
+Epoch: 18, Loss: 0.4081
+Epoch: 19, Loss: 0.4076
+Epoch: 20, Loss: 0.4072
+Training time: 0.03 seconds
