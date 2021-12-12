@@ -1,22 +1,22 @@
-from sklearn import datasets
-from parameters import Parameters
 from dataset import Dataloader
+from parameters import Parameters
 from decentralizedSGD import DecentralizedSGD
 
 model = DecentralizedSGD(Parameters(
-    lr=0.001,
+    lr=0.01,
     regularizer=None,
-    num_nodes=1,
-    topology='ring',
+    num_nodes=9,
+    topology='torus',
     algorithm='choco',
-    quantize_algo='full',
-    data_split=0.8,
+    quantize_algo='sparsification',
+    data_split=0.9,
     seed=None,
     loss='mse',
     num_epochs=20,
-    distribute_data=False,
+    distribute_data=True,
     distribute_data_method='random',
-    choco_gamma=0.1,
+    choco_gamma=0.01,
+    sparse_k=6,
 ))
 
 # DEBUG: Add regularizer

@@ -17,6 +17,7 @@ class Parameters:
         distribute_data=True,
         distribute_data_method='random',
         choco_gamma=None,
+        sparse_k=None,
     ):
 
         assert topology in ['ring', 'torus', 'fully-connected', 'disconnected']
@@ -29,6 +30,8 @@ class Parameters:
         if algorithm == 'choco':
             assert choco_gamma is not None
             assert quantize_algo is not None
+        if quantize_algo == 'sparsification':
+            assert sparse_k is not None
         
         self.lr = lr
         self.regularizer = regularizer
@@ -43,6 +46,7 @@ class Parameters:
         self.distribute_data = distribute_data
         self.distribute_data_method = distribute_data_method
         self.choco_gamma = choco_gamma
+        self.sparse_k = sparse_k
 
 
     def __str__(self) -> str:
@@ -59,4 +63,5 @@ class Parameters:
                 f'\tNumber of epochs: {self.num_epochs}\n' \
                 f'\tDistribute data: {self.distribute_data}\n' \
                 f'\tDistribute data method: {self.distribute_data_method}\n' \
-                f'\tChoco gamma: {self.choco_gamma}\n'
+                f'\tChoco gamma: {self.choco_gamma}\n' \
+                f'\tSparse k: {self.sparse_k}\n'

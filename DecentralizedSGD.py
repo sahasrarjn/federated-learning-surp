@@ -1,3 +1,4 @@
+from re import L
 from time import time
 import numpy as np
 import networkx as nx
@@ -44,8 +45,13 @@ class DecentralizedSGD:
         assert MM.shape == (num_nodes, num_nodes)
         return MM
 
-    def loss(self, X, y):
+    def loss(self, X, y, log=False):
         w = self.w.copy().mean(axis=1)
+
+        if log:
+            # print("Pred:", X@w)
+            # print("Actual:", y)
+            print(X@w - y)
 
         if self.params.loss == 'mse':
             loss = np.mean((X@w - y)**2)
@@ -62,8 +68,14 @@ class DecentralizedSGD:
         return 1./(1+np.exp(-w))
 
     def quantize(self, x):
-        if self.params.quantize_algo == 'spasification':
-            pass
+        if self.params.quantize_algo == 'sparsification':
+            q = np.zeros(x.shape)
+            k = self.params.sparse_k
+            # get top k dimension from x
+            for i in range(x.shape[1]):
+                idxs = np.argsort(np.abs(x[:,i]))[-k:]
+                q[idxs, i] = x[idxs, i]
+            return q.astype(np.float32)
         elif self.params.quantize_algo == 'random-gossip':
             pass
         elif self.params.quantize_algo == 'full':
@@ -89,6 +101,9 @@ class DecentralizedSGD:
         y = np.copy(y_train)
         losses = np.zeros(self.params.num_epochs+1)
         num_samples, num_features = X_train.shape
+
+        if self.params.seed is not None:
+            np.random.seed(self.params.seed)
 
         if self.w is None:
             self.w = np.random.normal(0, 0.1, num_features)   # initialize weights
@@ -159,6 +174,7 @@ class DecentralizedSGD:
             losses[epoch+1] = self.loss(X_train, y_train)
             print('Epoch: %d, Loss: %.4f' % (epoch+1, losses[epoch+1]))
 
+        # print("Final loss: ", self.loss(X_train, y_train, log=True))
         train_end_time = time()
         print('Training time: %.2f seconds' % (train_end_time - train_start_time))
 
