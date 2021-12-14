@@ -22,7 +22,7 @@ class Parameters:
 
         assert topology in ['ring', 'torus', 'fully-connected', 'disconnected']
         assert algorithm in ['plain', 'choco']
-        assert loss in ['mse', 'log', 'hinge']
+        assert loss in ['mse', 'logistic', 'hinge']
         assert distribute_data_method in ['random', 'sequential', 'label-sorted']
         assert quantize_algo in ['sparsification', 'random-gossip', 'full']
         assert data_split <= 1.0 and data_split >= 0.0
