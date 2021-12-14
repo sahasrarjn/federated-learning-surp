@@ -160,7 +160,7 @@ class DecentralizedSGD:
                     elif self.params.loss == 'hinge':
                         pass
                     elif self.params.loss == 'logistic':
-                        pass
+                        grad= X[:, idx]@(1/(1 + np.exp(-X@w)) - y)
                     else:
                         raise Exception('DecentralizedSGD: Unknown loss function')
                     w_mid[:, node] = - self.params.lr * grad
