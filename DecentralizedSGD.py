@@ -60,7 +60,8 @@ class DecentralizedSGD:
             pass
         elif self.params.loss == 'logistic':
             # L2 (Ridge) Regularization
-            loss= np.transpose(-y)@np.log(X@w) - np.transpose(1-y)@np.log(1-X@w) 
+            h_theta= 1./(1+np.exp(-X@w))
+            loss= np.transpose(-y)@np.log(h_theta) - np.transpose(1-y)@np.log(1-h_theta)  
             '''
             weights = np.zeros(np.shape(X)[1] + 1)
             z = np.dot(X, weights) 
