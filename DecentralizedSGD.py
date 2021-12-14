@@ -59,7 +59,14 @@ class DecentralizedSGD:
         elif self.params.loss == 'hinge':
             pass
         elif self.params.loss == 'logistic':
-            pass 
+            # L2 (Ridge) Regularization
+            loss= np.transpose(-y)@np.log(X@w) - np.transpose(1-y)@np.log(1-X@w) 
+            '''
+            weights = np.zeros(np.shape(X)[1] + 1)
+            z = np.dot(X, weights) 
+            reg_term = (1 / (2 * 0.01)) * np.dot(weights.T, weights) # C= 0.01
+            loss=  -1*np.sum((y * np.log(self.sigmoid(z))) + ((1 - y) * np.log(1 - self.sigmoid(z)))) + reg_term'''
+ 
         else:
             raise Exception('DecentralizedSGD: Unknown loss function')
         return loss
