@@ -49,8 +49,9 @@ class DecentralizedSGD:
         w = self.w.copy().mean(axis=1)
 
         if log:
-            # print("Pred:", X@w)
-            # print("Actual:", y)
+            # print(X.shape, w.shape)
+            print("Pred:", X@w)
+            print("Actual:", y)
             print(X@w - y)
 
         if self.params.loss == 'mse':
@@ -77,7 +78,11 @@ class DecentralizedSGD:
                 q[idxs, i] = x[idxs, i]
             return q.astype(np.float32)
         elif self.params.quantize_algo == 'random-gossip':
-            pass
+            prob = np.random.uniform()
+            if prob <= self.params.gossip_p:
+                return x
+            else:
+                return np.zeros_like(x)
         elif self.params.quantize_algo == 'full':
             return x
         else:

@@ -18,6 +18,7 @@ class Parameters:
         distribute_data_method='random',
         choco_gamma=None,
         sparse_k=None,
+        gossip_p=None,
     ):
 
         assert topology in ['ring', 'torus', 'fully-connected', 'disconnected']
@@ -32,6 +33,8 @@ class Parameters:
             assert quantize_algo is not None
         if quantize_algo == 'sparsification':
             assert sparse_k is not None
+        if quantize_algo == 'random-gossip':
+            assert gossip_p is not None
         
         self.lr = lr
         self.regularizer = regularizer
