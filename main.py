@@ -1,6 +1,6 @@
 from dataset import Dataloader
-from parameters import Parameters
-from decentralizedSGD import DecentralizedSGD
+from Parameters import Parameters
+from DecentralizedSGD import DecentralizedSGD
 
 model = DecentralizedSGD(Parameters(
     lr=0.01,
