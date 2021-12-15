@@ -3,7 +3,7 @@ from time import time
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
-from parameters import Parameters
+from Parameters import Parameters
 
 
 class DecentralizedSGD:
@@ -57,7 +57,11 @@ class DecentralizedSGD:
         if self.params.loss == 'mse':
             loss = np.mean((X@w - y)**2)
         elif self.params.loss == 'hinge':
-            pass
+            loss = np.zeros(len(X))
+            for i in range(len(X)):
+                ydash = y[i] * X[i]@w
+                loss[i] = np.max([0.0, (1 - ydash)])
+            loss = np.mean(loss)
         elif self.params.loss == 'logistic':
             # L2 (Ridge) Regularization
             h_theta= 1./(1+np.exp(-X@w))
@@ -158,7 +162,8 @@ class DecentralizedSGD:
                     if self.params.loss == 'mse':
                         grad = 2 * (X@w - y[idx]) * X
                     elif self.params.loss == 'hinge':
-                        pass
+                        ydash = y[idx] * X @ w
+                        grad = -1 * y[idx] * X if ydash < 1.0 else 0
                     elif self.params.loss == 'logistic':
                         grad= X[:, idx]@(1/(1 + np.exp(-X@w)) - y)
                     else:
