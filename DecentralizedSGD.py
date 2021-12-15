@@ -63,15 +63,12 @@ class DecentralizedSGD:
                 loss[i] = np.max([0.0, (1 - ydash)])
             loss = np.mean(loss)
         elif self.params.loss == 'logistic':
-            # L2 (Ridge) Regularization
-            h_theta= 1./(1+np.exp(-X@w))
-            loss= np.transpose(-y)@np.log(h_theta) - np.transpose(1-y)@np.log(1-h_theta)  
-            '''
-            weights = np.zeros(np.shape(X)[1] + 1)
-            z = np.dot(X, weights) 
-            reg_term = (1 / (2 * 0.01)) * np.dot(weights.T, weights) # C= 0.01
-            loss=  -1*np.sum((y * np.log(self.sigmoid(z))) + ((1 - y) * np.log(1 - self.sigmoid(z)))) + reg_term'''
- 
+            # loss function: -y*log(pred) - (1-y)*log(1-pred)
+            loss= np.zeros(len(X))
+            for i in range(len(X)):
+                h_theta= 1./(1+np.exp(-X[i]@w))
+                loss[i]= np.transpose(-y[i])*np.log(h_theta) - np.transpose(1-y[i])*np.log(1-h_theta) 
+            loss= np.mean(loss)
         else:
             raise Exception('DecentralizedSGD: Unknown loss function')
         return loss
