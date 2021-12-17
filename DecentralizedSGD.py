@@ -5,7 +5,6 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from Parameters import Parameters
 
-
 class DecentralizedSGD:
     def __init__(self, params:Parameters):
         self.params = params
@@ -113,10 +112,14 @@ class DecentralizedSGD:
         pred = 2 * self.predict(X) - 1
         return np.mean(pred == y)
 
+    def plot_loss(self, losses):
+        plt.plot(losses)
+        plt.show()
+
     def fit(self, X_train, y_train):
         '''Decentralised training using Choco-SGD'''
         y = np.copy(y_train)
-        losses = np.zeros(self.params.num_epochs+1)
+        losses = np.zeros(self.params.num_epochs)
         num_samples, num_features = X_train.shape
 
         if self.params.seed is not None:
@@ -168,6 +171,8 @@ class DecentralizedSGD:
                         grad= X[:, idx]@(1/(1 + np.exp(-X@w)) - y)
                     else:
                         raise Exception('DecentralizedSGD: Unknown loss function')
+                    
+                    # Update step
                     w_mid[:, node] = - self.params.lr * grad
 
                 # w_mid = self.w - w_mid # w^{t+1/2} = w^{t} - \eta grad^{t}
@@ -181,7 +186,7 @@ class DecentralizedSGD:
 
                     # Update step: w^{t+1} = w^{t+1/2} + \gamma q(w^{t+1/2} - w^{t})
                     self.w = w_mid + self.params.choco_gamma * \
-                        (self.w_hat).dot(self.MM - np.eye(self.params.num_nodes)) 
+                        (self.w_hat).dot(self.MM - np.eye(self.params.num_nodes))
                 elif self.params.algorithm == 'plain':
                     self.w = (self.w + w_mid).dot(self.MM)
                 else:
@@ -189,12 +194,12 @@ class DecentralizedSGD:
                 
                 # print('Loss: {:.4f}'.format(self.loss(X_train, y_train)))        
                     
-            losses[epoch+1] = self.loss(X_train, y_train)
-            print('Epoch: %d, Loss: %.4f' % (epoch+1, losses[epoch+1]))
+            losses[epoch] = self.loss(X_train, y_train)
+            print('Epoch: %d, Loss: %.4f' % (epoch+1, losses[epoch]))
 
         # print("Final loss: ", self.loss(X_train, y_train, log=True))
         train_end_time = time()
         print('Training time: %.2f seconds' % (train_end_time - train_start_time))
 
-                
+        self.plot_loss(losses)
         
