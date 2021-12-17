@@ -93,6 +93,17 @@ class DecentralizedSGD:
                 return np.zeros_like(x)
         elif self.params.quantize_algo == 'full':
             return x
+        elif self.params.quantize_algo == 'random-quantization':
+            q = np.zeros_like(x)
+            s = self.params.num_levels
+            d = q.shape[0]
+            tau = 1 + np.min(d/(s**2), np.sqrt(d)/s)
+
+            for i in range(q.shape[1]):
+                xx = x[:,i]
+                scale = np.sign(xx) * np.linalg.norm(xx) / (s*tau)
+                q[:, i] = scale * np.floor(s * np.abs(xx) / np.linalg.norm(xx) + np.random.rand(*x.shape))
+            return q
         else:
             raise Exception('DecentralizedSGD: Unknown quantization algorithm')
 

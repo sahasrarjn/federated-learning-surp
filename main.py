@@ -5,19 +5,20 @@ from DecentralizedSGD import DecentralizedSGD
 model = DecentralizedSGD(Parameters(
     lr=0.01,
     regularizer=None,
-    num_nodes=16,
+    num_nodes=1,
     topology='ring',
     algorithm='plain',
-    quantize_algo='sparsification',
+    quantize_algo='random-quantization',
     data_split=0.9,
     seed=None,
     loss='mse',
-    num_epochs=50,
+    num_epochs=1,
     distribute_data=True,
     distribute_data_method='random',
     choco_gamma=0.01,
     sparse_k=10,
     gossip_p=0.5,
+    num_levels=5,
 ))
 
 # DEBUG: Add regularizer

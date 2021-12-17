@@ -19,13 +19,14 @@ class Parameters:
         choco_gamma=None,
         sparse_k=None,
         gossip_p=None,
+        num_levels=None,
     ):
 
         assert topology in ['ring', 'torus', 'fully-connected', 'disconnected']
         assert algorithm in ['plain', 'choco']
         assert loss in ['mse', 'logistic', 'hinge']
         assert distribute_data_method in ['random', 'sequential', 'label-sorted']
-        assert quantize_algo in ['sparsification', 'random-gossip', 'full']
+        assert quantize_algo in ['sparsification', 'random-gossip', 'full', 'random-quantization']
         assert data_split <= 1.0 and data_split >= 0.0
         assert num_nodes > 0
         if algorithm == 'choco':
@@ -35,6 +36,8 @@ class Parameters:
             assert sparse_k is not None
         if quantize_algo == 'random-gossip':
             assert gossip_p is not None
+        if quantize_algo == 'random-quantization':
+            assert num_levels is not None
         
         self.lr = lr
         self.regularizer = regularizer
@@ -50,6 +53,8 @@ class Parameters:
         self.distribute_data_method = distribute_data_method
         self.choco_gamma = choco_gamma
         self.sparse_k = sparse_k
+        self.gossip_p = gossip_p
+        self.num_levels = num_levels
 
 
     def __str__(self) -> str:
@@ -67,4 +72,6 @@ class Parameters:
                 f'\tDistribute data: {self.distribute_data}\n' \
                 f'\tDistribute data method: {self.distribute_data_method}\n' \
                 f'\tChoco gamma: {self.choco_gamma}\n' \
-                f'\tSparse k: {self.sparse_k}\n'
+                f'\tSparse k: {self.sparse_k}\n' \
+                f'\tGossip p: {self.gossip_p}\n' \
+                f'\tNum levels: {self.num_levels}\n'
