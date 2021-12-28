@@ -212,5 +212,5 @@ class DecentralizedSGD:
         train_end_time = time()
         print('Training time: %.2f seconds' % (train_end_time - train_start_time))
 
-        self.plot_loss(losses)
+        if self.params.plot : self.plot_loss(losses)
         

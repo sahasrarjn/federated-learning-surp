@@ -20,6 +20,7 @@ class Parameters:
         sparse_k=None,
         gossip_p=None,
         num_levels=None,
+        plot=False,
     ):
 
         assert topology in ['ring', 'torus', 'fully-connected', 'disconnected']
@@ -55,6 +56,7 @@ class Parameters:
         self.sparse_k = sparse_k
         self.gossip_p = gossip_p
         self.num_levels = num_levels
+        self.plot = plot
 
 
     def __str__(self) -> str:
@@ -74,4 +76,5 @@ class Parameters:
                 f'\tChoco gamma: {self.choco_gamma}\n' \
                 f'\tSparse k: {self.sparse_k}\n' \
                 f'\tGossip p: {self.gossip_p}\n' \
-                f'\tNum levels: {self.num_levels}\n'
+                f'\tNum levels: {self.num_levels}\n' \
+                f'\tPlot: {self.plot}\n'
