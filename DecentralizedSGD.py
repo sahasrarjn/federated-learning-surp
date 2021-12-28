@@ -176,10 +176,8 @@ class DecentralizedSGD:
                         ydash = y[idx] * X @ w
                         grad = -1 * y[idx] * X if ydash < 1.0 else 0
                     elif self.params.loss == 'logistic':
-                        # grad=  weights - (grad_avg * learning_rate)
-                        lr= 0.01
                         grad_avg = np.dot(y[idx], self.sigmoid(X@w)) / len(X)
-                        grad=  w - grad_avg * lr 
+                        grad = grad_avg * self.params.lr 
                     else:
                         raise Exception('DecentralizedSGD: Unknown loss function')
                     
