@@ -3,11 +3,12 @@ from Parameters import Parameters
 from DecentralizedSGD import DecentralizedSGD
 
 model = DecentralizedSGD(Parameters(
-    lr=0.01,
+    lr_init=0.01,
+    lr_type='inv',
     regularizer=None,
     num_nodes=9,
     topology='ring',
-    algorithm='plain',
+    algorithm='choco',
     quantize_algo='random-quantization',
     data_split=1,
     seed=None,
@@ -20,6 +21,7 @@ model = DecentralizedSGD(Parameters(
     gossip_p=0.5,
     num_levels=5,
     plot=False,
+    dump=True,
 ))
 
 # DEBUG: Add regularizer

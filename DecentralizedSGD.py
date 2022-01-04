@@ -3,6 +3,8 @@ from time import time
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
+
+from utils import *
 from Parameters import Parameters
 
 class DecentralizedSGD:
@@ -76,7 +78,11 @@ class DecentralizedSGD:
         # modify later for overflow
         return 1./(1+np.exp(-w))
 
-    def quantize(self, x):
+    def quantize(self, x, dump=False, epoch=None):
+        if dump:
+            assert epoch is not None
+
+        sparse_x = None
         if self.params.quantize_algo == 'sparsification':
             q = np.zeros(x.shape)
             k = self.params.sparse_k
@@ -84,29 +90,47 @@ class DecentralizedSGD:
             for i in range(x.shape[1]):
                 idxs = np.argsort(np.abs(x[:,i]))[-k:]
                 q[idxs, i] = x[idxs, i]
-            return q.astype(np.float32)
+            sparse_x = q.astype(np.float32)
         elif self.params.quantize_algo == 'random-gossip':
             prob = np.random.uniform()
             if prob <= self.params.gossip_p:
-                return x
+                sparse_x = x
             else:
-                return np.zeros_like(x)
+                sparse_x = np.zeros_like(x)
         elif self.params.quantize_algo == 'full':
-            return x
+            sparse_x = x
         elif self.params.quantize_algo == 'random-quantization':
             q = np.zeros_like(x)
             s = self.params.num_levels
             d = q.shape[0]
-            tau = 1 + np.min(d/(s**2), np.sqrt(d)/s)
-
+            tau = 1 + min(float(d)/(s**2), float(np.sqrt(d))/s)
             for i in range(q.shape[1]):
                 xx = x[:,i]
                 scale = np.sign(xx) * np.linalg.norm(xx) / (s*tau)
-                q[:, i] = scale * np.floor(s * np.abs(xx) / np.linalg.norm(xx) + np.random.rand(*x.shape))
-            return q
+                q[:, i] = scale * np.floor(s * np.abs(xx) / np.linalg.norm(xx) + np.random.rand(*xx.shape))
+            sparse_x = q
         else:
             raise Exception('DecentralizedSGD: Unknown quantization algorithm')
 
+        # Get number of bits transfered
+        if dump:
+            print(f"Epoch: {epoch}, bits: {get_num_bits_numpy(sparse_x)}")
+
+        return sparse_x
+
+    def get_lr(self, epoch, iter, num_samples, num_features):
+        t = epoch * num_samples + iter
+        lr_type = self.params.lr_type
+        if lr_type == 'constant':
+            return self.params.lr_init
+        elif lr_type == 'decay':
+            return self.params.lr_init * (self.params.epoch_decay_lr ** epoch)
+        elif lr_type == 'inv':
+            return self.params.lr_init / (1 + t)
+        else:
+            raise Exception('DecentralizedSGD: Unknown learning rate type')
+        
+    
     def predict(self, X, prob=False):
         ''' Predict function for binary classification '''
         w = self.w.copy().mean(axis=1)
@@ -177,12 +201,12 @@ class DecentralizedSGD:
                         grad = -1 * y[idx] * X if ydash < 1.0 else 0
                     elif self.params.loss == 'logistic':
                         grad_avg = np.dot(y[idx], self.sigmoid(X@w)) / len(X)
-                        grad = grad_avg * self.params.lr 
+                        grad = grad_avg * self.get_lr(epoch, iter, num_samples_per_machine, num_features)
                     else:
                         raise Exception('DecentralizedSGD: Unknown loss function')
                     
                     # Update step
-                    w_mid[:, node] = - self.params.lr * grad
+                    w_mid[:, node] = - self.get_lr(epoch, iter, num_samples_per_machine, num_features) * grad
 
                 # w_mid = self.w - w_mid # w^{t+1/2} = w^{t} - \eta grad^{t}
                 # print("w_mid\n", w_mid)
@@ -190,7 +214,14 @@ class DecentralizedSGD:
                 # Decentralized Communication
                 if self.params.algorithm == 'choco':
                     w_mid = self.w + w_mid                  # w_mid = w^{t+1/2}
-                    q = self.quantize(w_mid - self.w_hat)   # q = q(w^{t+1/2} - w^{t})
+                    # q = q(w^{t+1/2} - w^{t})
+
+                    # if epoch == 0 and iter == 0:
+                    if iter == 0:
+                        q = self.quantize(w_mid - self.w_hat, dump=True, epoch=epoch)   
+                    else:
+                        q = self.quantize(w_mid - self.w_hat)
+
                     self.w_hat += q                         # w^{t+1} = w^{t} + q
 
                     # Update step: w^{t+1} = w^{t+1/2} + \gamma q(w^{t+1/2} - w^{t})

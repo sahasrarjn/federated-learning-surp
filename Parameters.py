@@ -4,7 +4,9 @@ class Parameters:
     """
     def __init__(
         self,
-        lr=None,
+        lr_init=None,
+        lr_type=None,
+        epoch_decay_lr=None,
         regularizer=None,
         num_nodes=1,
         topology='ring',
@@ -21,7 +23,13 @@ class Parameters:
         gossip_p=None,
         num_levels=None,
         plot=False,
+        dump=False,
     ):
+
+        assert lr_init is not None
+        assert lr_type is not None
+        if lr_type == 'decay':
+            assert epoch_decay_lr is not None
 
         assert topology in ['ring', 'torus', 'fully-connected', 'disconnected']
         assert algorithm in ['plain', 'choco']
@@ -40,7 +48,9 @@ class Parameters:
         if quantize_algo == 'random-quantization':
             assert num_levels is not None
         
-        self.lr = lr
+        self.lr_init = lr_init
+        self.lr_type = lr_type
+        self.epoch_decay_lr = epoch_decay_lr
         self.regularizer = regularizer
         self.num_nodes = num_nodes
         self.topology = topology
@@ -57,11 +67,14 @@ class Parameters:
         self.gossip_p = gossip_p
         self.num_levels = num_levels
         self.plot = plot
+        self.dump = dump
 
 
     def __str__(self) -> str:
         return  f'Parameters:\n' \
-                f'\tLearning rate: {self.lr}\n' \
+                f'\tlr_init: {self.lr_init}\n' \
+                f'\tlr_type: {self.lr_type}\n' \
+                f'\tepoch_decay_lr: {self.epoch_decay_lr}\n' \
                 f'\tRegularizer: {self.regularizer}\n' \
                 f'\tNumber of nodes: {self.num_nodes}\n' \
                 f'\tTopology: {self.topology}\n' \
@@ -77,4 +90,5 @@ class Parameters:
                 f'\tSparse k: {self.sparse_k}\n' \
                 f'\tGossip p: {self.gossip_p}\n' \
                 f'\tNum levels: {self.num_levels}\n' \
-                f'\tPlot: {self.plot}\n'
+                f'\tPlot: {self.plot}\n' \
+                f'\tDump: {self.dump}\n'
